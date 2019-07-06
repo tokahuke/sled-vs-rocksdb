@@ -1,0 +1,14 @@
+[package]
+name = "sled-test"
+version = "0.1.0"
+authors = ["Pedro Bittencorut Arruda <pedrobittencourt@yahoo.com.br>"]
+edition = "2018"
+
+[profile.release]
+lto = "thin"
+debug = true
+
+[dependencies]
+sled = { version = "0.24.1", features = ["compression"] }
+rocksdb = "0.12.2"
+jemallocator = "0.3.2"

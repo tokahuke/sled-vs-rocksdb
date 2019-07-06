@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+/sled
+/rocks
+perf.data
+perf.data.old
