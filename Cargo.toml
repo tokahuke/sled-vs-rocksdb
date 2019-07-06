@@ -1,5 +1,5 @@
 [package]
-name = "sled-test"
+name = "sled-vs-rocksdb"
 version = "0.1.0"
 authors = ["Pedro Bittencorut Arruda <pedrobittencourt@yahoo.com.br>"]
 edition = "2018"
