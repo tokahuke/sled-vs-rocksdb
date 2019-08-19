@@ -31,3 +31,11 @@ For this particular run, I have also got the following flamegraph:
 - Should these numbers be wildly different in SSD? My computer still uses HD.
 - Is this workload really that realistic? It is near to what I intend to use (merging and scanning).
 - Have I configured the system the right way? Anything that could have made both databses perform wildly better?
+
+
+Sled: 143.013933426s
+RocksDB: 120.89349547s
+[src/main.rs:96] count = 757935405000000
+Sled: 1.413365153s
+[src/main.rs:108] count = 757935405000000
+RocksDB: 1.745378177s

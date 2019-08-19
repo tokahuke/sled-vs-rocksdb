@@ -9,6 +9,6 @@ lto = "thin"
 debug = true
 
 [dependencies]
-sled = { version = "0.24.1", features = ["compression"] }
-rocksdb = "0.12.2"
+sled = { version = "0.25.0", features = ["compression"] }
+rocksdb = "0.12.3"
 jemallocator = "0.3.2"

@@ -34,11 +34,19 @@ fn main() {
     // This is how we initialize Sled.
     let sled_db = {
         let config = sled::ConfigBuilder::default()
-            .merge_operator(sled_cat)
             .path(SLED_PATH)
-            .use_compression(true);
+            .use_compression(true)
+            .io_buf_size(8_000_000)
+            .page_consolidation_threshold(10)
+            .cache_capacity(1_000_000_000)
+            .flush_every_ms(Some(200))
+            .snapshot_after_ops(100_000_000_000)
+            .print_profile_on_drop(true);
+        
+        let db = sled::Db::start(config.build()).unwrap();
+        db.set_merge_operator(sled_cat);
 
-        sled::Db::start(config.build()).unwrap()
+        db
     };
 
     // This is how we initialize RocksDB.
