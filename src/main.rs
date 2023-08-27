@@ -18,7 +18,7 @@ fn sled_cat(_key: &[u8], val: Option<&[u8]>, new: &[u8]) -> Option<Vec<u8>> {
 
 /// This is the concatenation merge operator in RocksDB.
 #[cfg(feature = "rocksdb")]
-fn rocks_cat(_key: &[u8], val: Option<&[u8]>, new: &mut rocksdb::MergeOperands) -> Option<Vec<u8>> {
+fn rocks_cat(_key: &[u8], val: Option<&[u8]>, new: &rocksdb::MergeOperands) -> Option<Vec<u8>> {
     Some(
         val.into_iter()
             .flatten()
@@ -37,14 +37,15 @@ fn from_bytes(b: &[u8]) -> u32 {
 fn sled_main() {
     // This is how we initialize Sled.
     let sled_db = {
-        let config = sled::Config::default()
+        let db = sled::Config::new()
             .path(SLED_PATH)
             .use_compression(true)
             .cache_capacity(1_000_000_000)
             .flush_every_ms(Some(200))
-            .print_profile_on_drop(true);
+            .print_profile_on_drop(true)
+            .open()
+            .unwrap();
 
-        let db = config.open().unwrap();
         db.set_merge_operator(sled_cat);
 
         db
@@ -61,7 +62,7 @@ fn sled_main() {
         }
     }
 
-    println!("Sled: {:?}", tic.elapsed());
+    println!("Sled: Fill DB with consecutive integers: {:?}", tic.elapsed());
 
     // 2. Now, sum all integers contained in all keys.
 
@@ -76,7 +77,7 @@ fn sled_main() {
         .sum::<u64>();
     dbg!(count);
 
-    println!("Sled: {:?}", tic.elapsed());
+    println!("Sled: sum all integers contained in all keys: {:?}", tic.elapsed());
 }
 
 #[cfg(feature = "rocksdb")]
@@ -85,7 +86,7 @@ fn rocksdb_main() {
     let rocks_db = {
         let mut options = rocksdb::Options::default();
         options.create_if_missing(true);
-        options.set_merge_operator("rocks_cat", rocks_cat, None);
+        options.set_merge_operator("rocks_cat", rocks_cat, |_, _, _| None);
         options.set_compression_type(rocksdb::DBCompressionType::Lz4);
 
         rocksdb::DB::open(&options, ROCKS_PATH).unwrap()
@@ -101,7 +102,7 @@ fn rocksdb_main() {
         }
     }
 
-    println!("RocksDB: {:?}", tic.elapsed());
+    println!("RocksDB: Fill DB with consecutive integers: {:?}", tic.elapsed());
 
     // 2. Now, sum all integers contained in all keys.
 
@@ -109,13 +110,16 @@ fn rocksdb_main() {
     let tic = Instant::now();
     let count = rocks_db
         .iterator(rocksdb::IteratorMode::Start)
-        .map(|(_, val)| val.as_ref().windows(4).map(from_bytes).collect::<Vec<_>>())
+        .map(|result| {
+            let val = &result.unwrap().1;
+            val.as_ref().windows(4).map(from_bytes).collect::<Vec<_>>()
+        })
         .flatten()
         .map(|i| i as u64)
         .sum::<u64>();
     dbg!(count);
 
-    println!("RocksDB: {:?}", tic.elapsed());
+    println!("RocksDB: sum all integers contained in all keys: {:?}", tic.elapsed());
 }
 
 fn main() {
